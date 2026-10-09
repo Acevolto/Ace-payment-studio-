@@ -1,0 +1,87 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Coinbase Receipt</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      background: #f3f5f9;
+      color: #202938;
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      max-width: 520px;
+      margin: 32px auto;
+      padding: 28px;
+      background: white;
+      border: 1px solid #dce2ea;
+      border-radius: 16px;
+    }
+
+    .demo {
+      padding: 12px;
+      background: #fff2d5;
+      color: #7b4c00;
+      text-align: center;
+      font-weight: bold;
+      border-radius: 8px;
+    }
+
+    .muted { color: #657187; }
+    .amount { font-size: 32px; font-weight: bold; }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid #e8ebf0;
+    }
+
+    footer {
+      margin-top: 24px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>ACE Payment Studio</h1>
+    <p class="muted">Receipt preview</p>
+
+    <div class="demo">
+      PROOF OF PAYMENT
+    </div>
+
+    <p class="muted">Example amount</p>
+    <p class="amount">$25.00 USD</p>
+    <h2>Demo transaction</h2>
+
+    <div class="row">
+      <span>Receipt number</span>
+      <strong>coinbase receipt </strong>
+    </div>
+
+    <div class="row">
+      <span>Status</span>
+      <strong>true </strong>
+    </div>
+
+    <div class="row">
+      <span>Payment reference</span>
+      <strong>real transaction</strong>
+    </div>
+
+    <footer class="muted">
+      This sample is for development and uses the real-life reference.
+      It does not represent a completed payment, and it
+      cannot be used as proof that money was transferred.
+    </footer>
+  </main>
+</body>
+</html>
