@@ -1,0 +1,27 @@
+Application
+
+APP_NAME=ACE Payment Studio
+APP_ENV=development
+APP_URL=http://localhost:8787
+
+Payment processing
+
+PAYMENT_MODE=sandbox
+PAYMENT_PROVIDER=stripe
+PAYMENT_API_KEY=
+PAYMENT_WEBHOOK_SECRET=
+
+Database — configure only if your app uses PostgreSQL
+
+DATABASE_URL=
+
+Email notifications — optional
+
+EMAIL_PROVIDER=
+EMAIL_API_KEY=
+EMAIL_FROM=
+
+Security
+
+SESSION_SECRET=
+ADMIN_API_TOKEN=
