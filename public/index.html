@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>ACE Payment Studio</title>
+  <style>
+    * { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 24px;
+  background: #111827;
+  color: #f9fafb;
+  font-family: system-ui, sans-serif;
+}
+main {
+  max-width: 760px;
+  margin: 32px auto;
+}
+header, section {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+h1 { margin-top: 0; }
+.muted {
+  color: #cbd5e1;
+  line-height: 1.6;
+}
+.badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #713f12;
+  color: #fef3c7;
+  font-size: 12px;
+  font-weight: 800;
+}
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 6px 6px 6px 0;
+  font-weight: 700;
+  cursor: pointer;
+  background: #dbeafe;
+  color: #111827;
+}
+button:disabled { opacity: 0.6; }
+.receipt {
+  background: #fff;
+  color: #111827;
+  border-radius: 12px;
+  padding: 22px;
+  margin-top: 16px;
+}
+.receipt h3 { margin-top: 0; }
+.notice {
+  border: 2px dashed #b91c1c;
+  color: #991b1b;
+  padding: 12px;
+  text-align: center;
+  font-weight: 800;
+  margin: 14px 0;
+}
+.line {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+#message {
+  overflow-wrap: anywhere;
+  color: #bfdbfe;
+}
+@media print {
+  body { background: white; color: black; padding: 0; }
+  header, section:not(#receiptSection) { display: none; }
+  main { margin: 0; }
+  #receiptSection { border: 0; }
+}
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <span class="badge">SANDBOX / TEST MODE</span>
+      <h1>ACE Payment Studio</h1>
+      <p class="muted">
+        Payment workflow dashboard, transaction testing,
+        and sample receipt preview.
+      </p>
+      <p id="health">Checking backend connection…</p>
+      <button id="checkButton">Check connection</button>
+      <button id="receiptButton">Generate receipt</button>
+      <p id="message" aria-live="polite"></p>
+    </header>
+<section id="receiptSection">
+  <h2>Receipt preview</h2>
+  <p class="muted">
+    This is for the interface of the real app .
+  </p>
+  <div id="receipt"></div>
+</section>
+  </main>
+  <script>
+    const health = document.getElementById("health");
+    const message = document.getElementById("message");
+    const receipt = document.getElementById("receipt");
+    const checkButton = document.getElementById("checkButton");
+    const receiptButton = document.getElementById("receiptButton");
+    async function getJSON(path) {
+      const response = await fetch(path, {
+        headers: { "Accept": "application/json" },
+        cache: "no-store"
+      });
+      if (!response.ok) {
+        throw new Error("Request failed: " + response.status);
+      }
+      return response.json();
+    }
+    checkButton.addEventListener("click", async () => {
+      checkButton.disabled = true;
+      health.textContent = "Checking…";
+      message.textContent = "";
+      try {
+        const data = await getJSON("/api/health");
+        health.textContent = "Backend connected: " + data.status;
+        message.textContent =
+          "Application: " + data.app +
+          " | Mode: " + data.paymentMode;
+      } catch {
+        health.textContent = "Backend connection failed.";
+        message.textContent =
+          "Check your Cloudflare deployment and try again.";
+      } finally {
+        checkButton.disabled = false;
+      }
+    });
+    receiptButton.addEventListener("click", async () => {
+      receiptButton.disabled = true;
+      message.textContent = "";
+      try {
+        const data = await getJSON("/api/receipt");
+        const amount = new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: data.currency
+        }).format(data.amountMinor / 100);
+        receipt.replaceChildren();
+        const title = document.createElement("h3");
+        title.textContent = data.merchant;
+        receipt.append(title);
+        const notice = document.createElement("div");
+        notice.className = "notice";
+        notice.textContent = data.notice;
+        receipt.append(notice);
+        const fields = [
+          ["Receipt reference", data.receiptId],
+          ["Description", data.description],
+          ["Sample amount", amount],
+          ["Record status", data.status],
+          ["Created", new Date(data.issuedAt).toLocaleString()]
+        ];
+        for (const [label, value] of fields) {
+          const row = document.createElement("div");
+          row.className = "line";
+          const left = document.createElement("span");
+          left.textContent = label;
+          const right = document.createElement("strong");
+          right.textContent = value;
+          row.append(left, right);
+          receipt.append(row);
+        }
+        const printButton = document.createElement("button");
+        printButton.textContent = "Print receipt";
+        printButton.addEventListener("click", () => window.print());
+        receipt.append(printButton);
+      } catch {
+        message.textContent =
+          "Could load receipt. Check the backend.";
+      } finally {
+        receiptButton.disabled = false;
+      }
+    });
+    checkButton.click();
+  </script>
+</body>
+</html>
