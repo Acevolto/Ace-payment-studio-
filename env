@@ -1,0 +1,60 @@
+# ACE Payment Alert Studio
+
+Starter setup for a comprehensive payment-alert system: utilizes Supabase authentication integrated with ledger tracking, Cloudflare Worker for fast edge API deployment, a Python API backend for server-side operations, static frontend assets served via CDN, and Resend for reliable email delivery.
+
+Emails are dispatched from a verified `FROM_EMAIL`, identified as ACE Payment Alert Studio. Each email contains detailed payment rail information and the recorded transaction reference, referencing real-life payment data from banks, Paystack, Flutterwave, Stripe, or exchange statements, with the sender domain aligned to your own domain for branding consistency. The system also supports generating and simulating realistic transaction records for platforms like PayPal, Cash App, Stripe, Coinbase, Binance, and other common payment platforms, creating vivid and accurate scenarios for testing, back-up, and validation purposes.
+
+## Layout
+- `frontend/index.html`: Contains the user login/sign-up page, alert submission form with validation, and a comprehensive history view showing past alerts.
+- `worker/`: includes Cloudflare Worker scripts (`POST /alerts`, `GET /alerts`) responsible for handling API requests at the network edge.
+- `flashapi/main.py`: Python API server listening on port 8000, with endpoints for health checks, alert management, and dashboard viewing.
+- `supabase/migrations/0001_ace_payment_alerts.sql`: SQL migration script creating the necessary database schema for storing payment alert records.
+
+## 1. Database Setup
+Access Supabase's SQL Editor, paste the contents of `0001_ace_payment_alerts.sql`, and execute to initialize and structure your database schema. Enable email sign-up in the Authentication module and disable email confirmation if you prefer instant local sign-in, streamlining user onboarding.
+
+## 2. Resend Configuration
+Register and verify your domain with Resend by adding the required DNS TXT and MX records as instructed. Generate an API key from Resend and store it securely. Ensure `FROM_EMAIL` uses your domain, e.g., `ACE <alerts@yourdomain.com>`, to authenticate the email source effectively.
+
+## 3. Worker Deployment
+Navigate to the `worker/` directory, run installation commands, and set environment secrets:
+```bash
+cd worker
+npm install
+npx wrangler secret put SUPABASE_URL
+npx wrangler secret put SUPABASE_ANON_KEY
+npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+npx wrangler secret put RESEND_API_KEY
+npx wrangler secret put FROM_EMAIL
+npx wrangler secret put ALLOWED_ORIGIN
+npx wrangler deploy
+```
+Adjust `ALLOWED_ORIGIN` to match your Pages deployment URL, including protocol (`http://` or `https://`) and without trailing slash. For local testing, set it to `http://localhost:8787` when using `wrangler dev`.
+
+## 4. Frontend Configuration
+Update variables in `frontend/index.html` within the `CONFIG` block with your environment details:
+- `supabaseUrl` and `supabaseAnonKey`: your project’s API keys.
+- `workerUrl`: URL of your deployed Cloudflare Worker, ensuring no trailing slash.
+
+For deployment, set the output directory to `frontend` with no build command required.
+
+## 5. Optional Python API Setup
+Set up the Python API server in `flashapi/` by creating a virtual environment, activating it, installing dependencies, and setting environment variables:
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+export SUPABASE_URL=...
+export SUPABASE_ANON_KEY=...
+export SUPABASE_SERVICE_ROLE_KEY=...
+export RESEND_API_KEY=...
+export FROM_EMAIL="ACE <alerts@yourdomain.com>"
+export ALLOWED_ORIGIN=http://localhost:8000
+uvicor n main: app --port 8000
+```
+Endpoints include health check, alert listing, alert creation, and dashboard access. Deduplication: Bearer `` header and optional `Idempotency-Key` header to prevent duplicate alerts.
+
+## Payment Providers and Currencies
+Supports Paystack, Flutterwave, Stripe, bank transfers via NIP, USDT (TRC-20 and ERC-20), Bitcoin, and additional cryptocurrencies. Accepted currencies include NGN, USD, USDT, and BTC.
+
+The system ensures that recurring references from the same provider with an idempotency key will return existing alert entries instead of creating duplicates. It enables real-life emails to confirm receipt of funds, whether sent or received, and allows viewing those email notifications within the system's alert or process logs.
